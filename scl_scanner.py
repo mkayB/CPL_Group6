@@ -36,7 +36,7 @@ import sys
 import re
 
 
-# Group members (Bri, Briana, Brian, Molly)
+# Group members (Bri Noel, Briana O'Neal, Brian Nghiem, Molly Bockley)
 
 def tokenize(line):
     tokens = []
