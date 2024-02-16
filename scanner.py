@@ -1,6 +1,4 @@
-# Your main script
-
-from Token import Token  # Import Token class from Tokens.py
+from Token import *  # Import Token class from Tokens.py
 import json
 import sys
 import re
