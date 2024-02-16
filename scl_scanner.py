@@ -1,51 +1,26 @@
-# import re
-
-# keywords = ['CONSTANTS', 'VARIABLES', 'DEFINE', 'READ', 'DISPLAY', 'INPUT', 'RETURN', 'IF', 'ELSE', 'ENDIF', 'WHILE', 'ENDWHILE', 'MBREAK', 'MEXIT']
-# operators = ['+', '-', '*', '/', '=', ':', '(', ')', ',', ';']
-
-# patterns = [
-#     (r'\b[a-zA-Z_]\w*\b', 'IDENTIFIER'),  # Matches identifiers
-#     (r'\b=\b', 'EQOP'),  # Matches the equals operator
-#     (r'\bTUNSIGNED|CHAR|INTEGER|MVOID\b', 'DATA_TYPE'),  # Matches data types
-#     (r'\[', 'LB'),  # Matches left square bracket
-#     (r'\]', 'RB'),  # Matches right square bracket
-#     (r'\+', 'PLUS'),  # Matches plus operator
-#     (r'-', 'MINUS'),  # Matches minus operator
-#     (r'\*', 'STAR'),  # Matches multiplication operator
-#     (r'/', 'DIVOP'),  # Matches division operator
-#     (r'RELOP', 'RELOP'),  # Placeholder for your relational operator
-#     (r',', 'COMMA'),  # Matches comma
-#     (r';', 'SEMICOLON'),  # Matches semicolon
-#     (r'\{', 'LB_BRACE'),  # Matches left brace
-#     (r'\}', 'RB_BRACE'),  # Matches right brace
-#     (r'\(', 'LP'),  # Matches left parenthesis
-#     (r'\)', 'RP'),  # Matches right parenthesis
-#     (r'MVOID', 'MVOID'),  # Matches MVOID
-#     (r'PBEGIN', 'PBEGIN'),  # Matches PBEGIN
-#     (r'ENDFUN', 'ENDFUN'),  # Matches ENDFUN
-#     (r'MTRUE', 'MTRUE'),  # Matches MTRUE
-#     (r'MFALSE', 'MFALSE'),  # Matches MFALSE
-#     (r'\d+', 'INTEGER'),  # Match integers
-#     (r'"(?:\\.|[^"])*"', 'STRING'),  # Match strings
-#     (r'\s+', None),  # Match whitespace (to be ignored)
-# ]
-
 from Token import *
 import json
 import sys
 import re
 
 
-# Group members (Bri Noel, Briana O'Neal, Brian Nghiem, Molly Bockley)
+# Group members (Bri, Briana, Brian, Molly)
 
 def tokenize(line):
     tokens = []
     current = ""
     in_string_comment = False
     inline_comment = False
-
-    # group together all regular expressions
-    regular_expressions = r'("[^"]*"|\'[^\']*\')|(/\*.*?\*/)|(//.*)|(\b(import|implementations|function|main|is|variables|define|of|begin|display|set|input|if|then|else|endif|not|greater|or|equal|return)\b)|([a-zA-Z_]\w*)|(\d+(\.\d+)?)|(:|\.|:|,|/|=|>|\*|\)|\()'
+    token_types = {
+        "StringLiteral": r'("[^"]*"|\'[^\']*\')',
+        "MultiLineComment": r'/\*.*?\*/',
+        "SingleLineComment": r'//.*',
+        "Keyword": r'\b(import|implementations|function|main|is|variables|define|of|begin|display|set|input|if|then|else|endif|not|greater|or|equal|return)\b',
+        "Identifier": r'[a-zA-Z_]\w*',
+        "NumericLiteral": r'\d+(\.\d+)?',
+        "Operator": r':|\.|:|,|/|=|>|\*|\)|\('
+    }
+    regular_expressions = "|".join(f"({regex})" for regex in token_types.values())
 
     match_objects = re.finditer(regular_expressions, line)
 
@@ -101,45 +76,46 @@ def scl_file(name_file):
 counter = 3000
 map = {}
 
-
-# categorizes tokens
 def categorize(token):
     global counter
 
-    if token in tokenList["keywords"]:
-        return {"Type": "Keyword", "id": tokenList["keywords"][str(token)], "value": token}
-    elif re.match(r'^[a-zA-Z_]\w*$', token):
-        # increment ID's
-        # gives every identifier an unique id
-        if token in map:
-            return {"Type": "Identifier", "id": map[token], "value": token}
+    keyword_set = set(tokenList["keywords"])
+    operator_set = set(tokenList["operators"])
 
-        result = {"Type": "Identifier", "id": counter, "value": token}
-        map[token] = counter
-        counter += 1
-        return result
-    elif re.match(r'^[0-9]+(\.[0-9]+)?$', token):
-        return {"Type": "NumericLiteral", "id": 4000, "value": token}
-    elif token.startswith('"') or token.startswith("'"):
-        #gets rid of extra quotes
-        cleaned_token = token[1:-1].replace('\\"', '"').replace("\\'", "'").replace("\\/", "/")
-        return {"Type": "StringLiteral", "id": 5000, "value": cleaned_token}
-    elif token in [",", "="]:
-        return {"Type": "Operator", "id": 400, "value": token}
-    elif token in tokenList["operators"]:
-        return {"Type": "Operator", "id": tokenList["operators"][str(token)], "value": token}
+    if token in keyword_set:
+        return {"Type": "Keyword", "id": tokenList["keywords"][token], "value": token}
+    elif token in operator_set:
+        return {"Type": "Operator", "id": tokenList["operators"][token], "value": token}
     elif token == ":":
         return {"Type": "VariableDeclaration", "id": 6002, "value": token}
-    # additional conditions for other kinds of tokens
+
+    if re.match(r'^[a-zA-Z_]\w*$', token):
+        # Use counter directly without a separate map
+        result = {"Type": "Identifier", "id": counter, "value": token}
+        counter += 1
+        return result
+    elif re.match(r'^(?:"|\').*?(?:"|\')$', token) or re.match(r'^[0-9]+(\.[0-9]+)?$', token):
+        if token.startswith('"') or token.startswith("'"):
+            cleaned_token = token[1:-1].replace('\\"', '"').replace("\\'", "'").replace("\\/", "/")
+            return {"Type": "StringLiteral", "id": 5000, "value": cleaned_token}
+        else:
+            return {"Type": "NumericLiteral", "id": 4000, "value": token}
+    elif token in [",", "="]:
+        return {"Type": "Operator", "id": 400, "value": token}
 
     # unknown token if previous conditions are untrue
     return {"Type": "UNKNOWN", "id": 1200, "value": token}
 
 
-if __name__ == '__main__':
-    sysArgv = "/Users/briannanoel/PycharmProjects/deliverable1/welcome.scl"
 
-    itemList = scl_file(sysArgv)
+if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        print("Usage: python script.py <file_path>")
+        sys.exit(1)
+    sys.Argv = sys.argv
+
+    #input_file_path = sys.Argv[1]
+    itemList = scl_file(sys.Argv[1])
 
     finalList = []
 
