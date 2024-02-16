@@ -78,16 +78,16 @@ map = {}
 
 def categorize(token):
     global counter
-
     keyword_set = set(tokenList["keywords"])
     operator_set = set(tokenList["operators"])
+    special_symbol_set = set(tokenList["specialSymbols"])
 
     if token in keyword_set:
         return {"Type": "Keyword", "id": tokenList["keywords"][token], "value": token}
     elif token in operator_set:
         return {"Type": "Operator", "id": tokenList["operators"][token], "value": token}
-    elif token == ":":
-        return {"Type": "VariableDeclaration", "id": 6002, "value": token}
+    elif token in special_symbol_set:
+        return {"Type": "SpecialSymbol", "id": tokenList["specialSymbols"][token], "value": token}
 
     if re.match(r'^[a-zA-Z_]\w*$', token):
         # Use counter directly without a separate map
