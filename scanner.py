@@ -1,8 +1,9 @@
-from Token import *
+# Your main script
+
+from Token import Token  # Import Token class from Tokens.py
 import json
 import sys
 import re
-from tokens_definitions import tokenList  # Import tokenList from the separate file
 
 def tokenize(line, tokenList):
     tokens = []
