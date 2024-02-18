@@ -58,9 +58,9 @@ tokenList = {
         '>': 406,
         '<': 407,
         '=': 408,
-        '(':409,
-        ')':410,
-        '.':411 #TODO Need to add some way to signify operator vs special symbol
+        '(': 409,
+        ')': 410,
+        '.': 411
     },
 
     "specialSymbols": {
